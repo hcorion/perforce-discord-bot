@@ -43,6 +43,8 @@ async def perforce_check():
         
         p4_changes_arr = p4.run_changes("-t", "-m 1", "-l")
         p4_changes = p4_changes_arr[0]
+        if p4_changes["status"] == "pending":
+            continue
         change = p4_changes["change"]
         time = p4_changes["time"]
         user = p4_changes["user"]
@@ -64,7 +66,7 @@ async def perforce_check():
 
             change_body = desc
             cool_words = ["dope", "super cool", "sweet", "awesome", "amazing", "outstanding", "fantastic", "beautiful", "radical", "bangin'", "breathtaking", "wonderful", "magnificent", "terrific", 
-                    "extraordinary", "splendid", "grand", "stupendous", "superb", "marvellous", "tremendous", "spectacular", "sensational", "glorious"]
+                    "extraordinary", "splendid", "grand", "stupendous", "superb", "marvellous", "tremendous", "spectacular", "sensational", "glorious", "epic"]
             #This website is amazing https://regexr.com/
             featurePattern = re.compile("^(feat|feature) *\( *.* *\) *:")
             bugPattern = re.compile("^(bug|fix|bugfix) *\( *.* *\) *:")
@@ -80,10 +82,10 @@ async def perforce_check():
 
                 body = change_body.split(":", 1)[1]
                 body = body.strip()
-                await channel.send(content=f"A {random.choice(cool_words)} new **{clType}** was just submitted for **{category}** by {user}!\n>>> {body}")
+                await channel.send(content=f"A {random.choice(cool_words)} new **{clType}** was just submitted for **{category}** by **{user}**!\n>>> {body}")
                 
             else:
-                await channel.send(content=f"{p4_changes}")
+                await channel.send(content=f"Uncatagorized change by **{user}** \n>>> {desc}")
         await asyncio.sleep(30)
 
 @bot.event
@@ -103,6 +105,7 @@ async def on_message(message):
         drive_size = subprocess.run(['df', '-h', '/'], stdout=subprocess.PIPE).stdout.decode('utf-8')
         perforce_stats = subprocess.run(['p4', 'info', '-s'], stdout=subprocess.PIPE).stdout.decode('utf-8')
         
+        embed = discord.Embed(title="Statistics")
         embed.add_field(name="Perforce depot size:", value=depot_size, inline=False)
         embed.add_field(name="Drive Size", value=f"```\n{drive_size}\n```", inline=False)
         embed.add_field(name="Perforce Stats", value=f"{perforce_stats}", inline=False)
