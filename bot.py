@@ -23,6 +23,8 @@ p4.password = os.getenv('P4PASSWD')
 p4.connect()
 p4.run_login()
 
+domain=os.getenv('DOMAIN')
+
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -50,6 +52,7 @@ async def perforce_check():
         user = p4_changes["user"]
         client = p4_changes["client"]
         desc = p4_changes["desc"]
+        change_type = p4_changes["changeType"]
 
         output = "Change " + change + " on " + time + " by " + user + "@" + client + "\n\n" + desc
         output = output.strip()
@@ -74,7 +77,7 @@ async def perforce_check():
             if featurePattern.match(change_body) or bugPattern.match(change_body) or maintenancePattern.match(change_body):
                 clType = "Feature"
                 if bugPattern.match(change_body):
-                    clType = "Bugfix"
+                    clType = "Bug fix"
                 elif maintenancePattern.match(change_body):
                     clType = "Maintenance fix"
                 category = change_body.split("(", 1)[1]
@@ -82,7 +85,12 @@ async def perforce_check():
 
                 body = change_body.split(":", 1)[1]
                 body = body.strip()
-                await channel.send(content=f"A {random.choice(cool_words)} new **{clType}** was just submitted for **{category}** by **{user}**!\n>>> {body}")
+                cool_word=random.choice(cool_words)
+                vowel = 'aeiou'
+                starting_word="A"
+                if cool_word[0].lower() in vowel:
+                    starting_word="An"
+                await channel.send(content=f"{starting_word} {cool_word} new **{clType}** was just submitted for **{category}** by **{user}**!\n<{domain}/changes/{change}>\n>>> {body}")
                 
             else:
                 await channel.send(content=f"Uncatagorized change by **{user}** \n>>> {desc}")
